@@ -1,6 +1,6 @@
 ## Description
 
-A Travel Agency ticketing system API. A Travel Agency ticketing system API. Realtime seats update using SSE, locking seat system using Redis and payment using [Xendit](https://www.xendit.co/id/). All of the APIs are following the specification from [OpenAPISpec.yml](OpenAPISpec.yml).
+A Travel Agency ticketing system API. Realtime seats update using SSE, locking seat system using Redis and payment using [Xendit](https://www.xendit.co/id/). All of the APIs are following the specification from [OpenAPISpec.yml](OpenAPISpec.yml).
 
 ## Project setup
 
