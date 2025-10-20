@@ -1,0 +1,415 @@
+openapi: 3.0.4
+
+info:
+  title: Travel Ticketing API
+  description: An API for a travel agency ticketing system.
+  license:
+    name: MIT
+  version: 'v1.0'
+
+servers:
+  - url: https://travel-ticketing.fly.dev
+    description: Production server deploy in fly.io using Docker
+
+components:
+  headers:
+    X-Rate-Limit-Limit:
+      description: The number of allowed requests in the current period
+      schema:
+        type: integer
+    X-Rate-Limit-Remaining:
+      description: The number of remaining requests in the current period
+      schema:
+        type: integer
+    X-Rate-Limit-Reset:
+      description: The number of seconds left in the current period
+      schema:
+        type: integer
+  responses:
+    InternalServerError:
+      description: Internal Server Error
+      headers:
+        X-Rate-Limit-Limit:
+          $ref: '#/components/headers/X-Rate-Limit-Limit'
+        X-Rate-Limit-Remaining:
+          $ref: '#/components/headers/X-Rate-Limit-Remaining'
+        X-Rate-Limit-Reset:
+          $ref: '#/components/headers/X-Rate-Limit-Reset'
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+                default: 500
+              message:
+                type: string
+                default: Internal Server Error occur. Please try again!
+  schemas:
+    400ResponseBody:
+      description: 400 Response body schema
+      type: object
+      properties:
+        code:
+          type: integer
+          default: 400
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+              message:
+                type: string
+
+    SeatStatusUpdate:
+      type: object
+      description: Payload for the 'seatUpdate' event.
+      properties:
+        seatId:
+          type: string
+          description: The unique identifier for the seat.
+          example: 'A2'
+        newStatus:
+          type: string
+          description: The new status of the seat.
+          enum: [available, locked]
+          example: 'locked'
+
+    SeatSnapshot:
+      type: object
+      description: Payload for the initial 'snapshot' event.
+      properties:
+        scheduleId:
+          type: string
+          format: uuid
+        available:
+          type: array
+          items:
+            type: string
+          example: ['A1', 'A2', 'B3']
+        locked:
+          type: array
+          items:
+            type: string
+          example: ['C1']
+
+paths:
+  /schedules:
+    get:
+      description: Check travel schedules for specific departure, destination, date, and amount of passenger
+      tags:
+        - Schedules
+      parameters:
+        - name: departureId
+          in: query
+          description: User's departure ID
+          required: true
+          schema:
+            type: string
+        - name: destinationId
+          in: query
+          description: User's destination ID
+          required: true
+          schema:
+            type: string
+        - name: departureDate
+          in: query
+          description: User's departure date in YYYY-MM-DD format
+          required: true
+          schema:
+            type: string
+        - name: totalPassenger
+          in: query
+          description: Total passenger
+          required: true
+          schema:
+            type: number
+      responses:
+        '200':
+          description: A successful response
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/X-Rate-Limit-Limit'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/X-Rate-Limit-Remaining'
+            X-Rate-Limit-Reset:
+              $ref: '#/components/headers/X-Rate-Limit-Reset'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: number
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                        time:
+                          type: string
+                          format: timestamp
+                        totalAvailableSeat:
+                          type: integer
+                        departure:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              format: uuid
+                            departure:
+                              type: string
+                        destination:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              format: uuid
+                            destination:
+                              type: string
+                        price:
+                          type: integer
+        '400':
+          description: One or more of the query parameter are invalid or missing. Check the response body for details
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/X-Rate-Limit-Limit'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/X-Rate-Limit-Remaining'
+            X-Rate-Limit-Reset:
+              $ref: '#/components/headers/X-Rate-Limit-Reset'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    default: 400
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        field:
+                          type: string
+                          description: One or more query parameters
+                        message:
+                          type: string
+                          description: The error message
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /schedules/{scheduleId}/availabe-seats:
+    get:
+      tags:
+        - Schedules
+      description: |
+        Establishes a Server-Sent Events (SSE) connection to receive
+        real-time updates on seat availability for a specific schedule.
+
+        The client must accept the `text/event-stream` content type.
+        The connection will remain open, and the server will push events
+        as seat statuses change.
+      parameters:
+        - name: scheduleId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: A successful, continuous stream of seat availability events. The stream consists of different event types.
+          content:
+            text/event-stream:
+              schema:
+                type: string
+                description: |
+                  The event stream is a flow of data blocks. Each block has an `event` type
+                  and a `data` payload (which is a JSON string).
+
+                  **Event: `snapshot`**
+                  Fires *once* upon initial connection.
+                  Provides the complete current state of all seats for the schedule.
+                  The `data` payload is a JSON object matching the `SeatSnapshot` schema.
+
+                  **Event: `seat_update`**
+                  Fires whenever a single seat's status changes (e.g., locked, taken, released).
+                  The `data` payload is a JSON object matching the `SeatStatusUpdate` schema.
+
+                  **Event: `heartbeat`**
+                  Fires periodically (e.g., every 30 seconds) with no data, just to keep the connection alive.
+
+                example: |
+                  event: snapshot
+                  data: {"scheduleId":"UUID","available":["A1","A2","B3"],"locked":["C1"]}
+
+                  event: seat_update
+                  data: {"seatId":"A2","newStatus":"locked"}
+
+                  event: heartbeat
+                  data:
+
+                  event: seat_update
+                  data: {"seatId":"C1","newStatus":"available"}
+        '400':
+          description: Missing or invalid scheduleId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/400ResponseBody'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /tickets:
+    post:
+      tags:
+        - Tickets
+      description: Create an order
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                scheduleId:
+                  type: string
+                  format: uuid
+                totalPassenger:
+                  type: integer
+                orderer:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    email:
+                      type: string
+                    noWa:
+                      type: string
+                      example: 628xxxxx
+                seatId:
+                  type: integer
+      responses:
+        '201':
+          description: Sucessfully create order. Seat is locked for 10 minutes and waiting for payment
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/X-Rate-Limit-Limit'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/X-Rate-Limit-Remaining'
+            X-Rate-Limit-Reset:
+              $ref: '#/components/headers/X-Rate-Limit-Reset'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    default: 201
+                  data:
+                    type: object
+                    properties:
+                      ticketId:
+                        type: string
+                        format: uuid
+                      secondsBeforeInvalid:
+                        type: integer
+        '400':
+          description: One or more of the request body are invalid or missing
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/X-Rate-Limit-Limit'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/X-Rate-Limit-Remaining'
+            X-Rate-Limit-Reset:
+              $ref: '#/components/headers/X-Rate-Limit-Reset'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/400ResponseBody'
+        '404':
+          description: Schedule data is not found
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/X-Rate-Limit-Limit'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/X-Rate-Limit-Remaining'
+            X-Rate-Limit-Reset:
+              $ref: '#/components/headers/X-Rate-Limit-Reset'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  message:
+                    type: string
+                    example: Schedule data is not found or has been expired
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /tickets/{ticketId}/payments:
+    post:
+      tags:
+        - Tickets
+      description: Payment initiation
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                paymentMethodCode:
+                  type: string
+                  example: ID_OVO
+      responses:
+        '201':
+          description: Successfully initiate payment
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/X-Rate-Limit-Limit'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/X-Rate-Limit-Remaining'
+            X-Rate-Limit-Reset:
+              $ref: '#/components/headers/X-Rate-Limit-Reset'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  invoiceId:
+                    type: string
+                    description: Invoice ID from payment gateway
+                  ticketId:
+                    type: string
+                    format: uuid
+                  paymentStatus:
+                    type: string
+                    default: PENDING
+                  invoiceUrl:
+                    type: string
+                    description: Redirect user to this URL to let her pay the bill
+        '400':
+          description: Invalid ticket ID or ticket ID not found
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/X-Rate-Limit-Limit'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/X-Rate-Limit-Remaining'
+            X-Rate-Limit-Reset:
+              $ref: '#/components/headers/X-Rate-Limit-Reset'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/400ResponseBody'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
