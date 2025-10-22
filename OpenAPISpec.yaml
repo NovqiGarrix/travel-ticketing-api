@@ -21,10 +21,6 @@ components:
       description: The number of remaining requests in the current period
       schema:
         type: integer
-    X-Rate-Limit-Reset:
-      description: The number of seconds left in the current period
-      schema:
-        type: integer
   responses:
     InternalServerError:
       description: Internal Server Error
@@ -33,8 +29,6 @@ components:
           $ref: '#/components/headers/X-Rate-Limit-Limit'
         X-Rate-Limit-Remaining:
           $ref: '#/components/headers/X-Rate-Limit-Remaining'
-        X-Rate-Limit-Reset:
-          $ref: '#/components/headers/X-Rate-Limit-Reset'
       content:
         application/json:
           schema:
@@ -135,8 +129,6 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
             X-Rate-Limit-Remaining:
               $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
           content:
             application/json:
               schema:
@@ -182,8 +174,6 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
             X-Rate-Limit-Remaining:
               $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
           content:
             application/json:
               schema:
@@ -304,8 +294,6 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
             X-Rate-Limit-Remaining:
               $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
           content:
             application/json:
               schema:
@@ -329,8 +317,6 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
             X-Rate-Limit-Remaining:
               $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
           content:
             application/json:
               schema:
@@ -342,8 +328,6 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
             X-Rate-Limit-Remaining:
               $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
           content:
             application/json:
               schema:
@@ -379,8 +363,6 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
             X-Rate-Limit-Remaining:
               $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
           content:
             application/json:
               schema:
@@ -405,8 +387,6 @@ paths:
               $ref: '#/components/headers/X-Rate-Limit-Limit'
             X-Rate-Limit-Remaining:
               $ref: '#/components/headers/X-Rate-Limit-Remaining'
-            X-Rate-Limit-Reset:
-              $ref: '#/components/headers/X-Rate-Limit-Reset'
           content:
             application/json:
               schema:

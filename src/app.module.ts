@@ -2,9 +2,10 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { DbModule } from './db/db.module';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ConfigModule } from '@nestjs/config';
 import { DeparturesModule } from './departures/departures.module';
 import { TicketsModule } from './tickets/tickets.module';
+import { RedisModule } from './redis/redis.module';
 import * as Joi from 'joi';
 
 @Module({
@@ -23,6 +24,7 @@ import * as Joi from 'joi';
     DbModule,
     DeparturesModule,
     TicketsModule,
+    RedisModule,
   ],
   controllers: [AppController],
   providers: [AppService],

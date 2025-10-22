@@ -1,6 +1,16 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
 import { TicketsService } from './tickets.service';
+import { RateLimitGuard } from 'src/rate-limit/rate-limit.guard';
+import { RateLimitInterceptor } from 'src/rate-limit/rate-limit.interceptor';
 
+@UseGuards(RateLimitGuard)
+@UseInterceptors(RateLimitInterceptor)
 @Controller('tickets')
 export class TicketsController {
   constructor(private readonly ticketService: TicketsService) {}
