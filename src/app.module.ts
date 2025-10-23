@@ -1,13 +1,14 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+import { EventEmitterModule } from '@nestjs/event-emitter';
+import * as Joi from 'joi';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { DbModule } from './db/db.module';
-import { ConfigModule } from '@nestjs/config';
 import { DeparturesModule } from './departures/departures.module';
-import { TicketsModule } from './tickets/tickets.module';
 import { RedisModule } from './redis/redis.module';
 import { SchedulesModule } from './schedules/schedules.module';
-import * as Joi from 'joi';
+import { TicketsModule } from './tickets/tickets.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import * as Joi from 'joi';
         DATABASE_URL: Joi.string().uri(),
       }),
     }),
+    EventEmitterModule.forRoot(),
     DbModule,
     DeparturesModule,
     TicketsModule,

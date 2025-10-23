@@ -11,7 +11,7 @@ export class ValidationExceptionFilter implements ExceptionFilter {
     const status = exception.getStatus();
 
     const errs = (exception.getResponse() as ZodError).issues.map((issue) => ({
-      field: issue.path[0],
+      field: issue.path.join('.'),
       message: issue.message,
     }));
 

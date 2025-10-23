@@ -12,3 +12,9 @@ export const getSchedulesParamsDto = z.object({
 });
 
 export type GetSchedulesParamsDto = z.infer<typeof getSchedulesParamsDto>;
+
+export const getLockedSeatsParamsDto = z.object({
+  scheduleId: z.uuidv7({ message: 'The schedule ID is not valid' }),
+});
+
+export type GetLockedSeatsParamsDto = z.infer<typeof getLockedSeatsParamsDto>;

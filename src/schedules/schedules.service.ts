@@ -34,13 +34,7 @@ export class SchedulesService {
         schema.destination,
         eq(schema.destination.id, schema.schedule.destinationId),
       )
-      .leftJoin(
-        schema.seat,
-        and(
-          eq(schema.seat.isLocked, true),
-          eq(schema.seat.scheduleId, schema.schedule.id),
-        ),
-      )
+      .leftJoin(schema.seat, eq(schema.seat.scheduleId, schema.schedule.id))
       .where(
         and(
           // time is the column name

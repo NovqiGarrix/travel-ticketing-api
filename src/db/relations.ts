@@ -26,7 +26,6 @@ export const seatRelations = relations(seat, ({ one, many }) => ({
     fields: [seat.scheduleId],
     references: [schedule.id],
   }),
-  tickets: many(ticket),
 }));
 
 export const departureRelations = relations(departure, ({ many }) => ({
@@ -41,10 +40,6 @@ export const ticketRelations = relations(ticket, ({ one, many }) => ({
   schedule: one(schedule, {
     fields: [ticket.scheduleId],
     references: [schedule.id],
-  }),
-  seat: one(seat, {
-    fields: [ticket.seatId],
-    references: [seat.id],
   }),
   payments: many(payment),
 }));

@@ -12,14 +12,17 @@ import {
 } from 'drizzle-orm/pg-core';
 import { v7 as v7uuid } from 'uuid';
 
+// Store all occupied seats
+// means, seats that are paid
 export const seat = pgTable('seats', {
   id: serial().primaryKey(),
   seatIdentifier: varchar('seat_identifier', { length: 2 }).notNull(),
   scheduleId: uuid('schedule_id')
     .references(() => schedule.id, { onDelete: 'cascade' })
     .notNull(),
-  isLocked: boolean('is_locked').notNull().default(false),
 });
+
+export type Seat = typeof seat.$inferSelect;
 
 export const schedule = pgTable('schedules', {
   id: uuid()
@@ -66,10 +69,10 @@ export const ticket = pgTable('tickets', {
     .references(() => schedule.id, { onDelete: 'cascade' }),
   totalPassenger: integer('total_passenger').notNull(),
   orderer: json('orderer').notNull(),
-  seatId: integer()
-    .notNull()
-    .references(() => seat.id),
+  seatIdentifier: varchar('seat_identifier', { length: 2 }).notNull(),
 });
+
+export type Ticket = typeof ticket.$inferSelect;
 
 export const payment = pgTable(
   'payments',

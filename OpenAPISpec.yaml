@@ -200,7 +200,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /schedules/{scheduleId}/availabe-seats:
+  /schedules/{scheduleId}/locked-seat:
     get:
       tags:
         - Schedules
@@ -288,8 +288,9 @@ paths:
                     noWa:
                       type: string
                       example: 628xxxxx
-                seatId:
-                  type: integer
+                seatIdentifier:
+                  type: string
+                  description: Not the Seat ID but the seat_identifier such as A1, C2, etc..
       responses:
         '201':
           description: Sucessfully create order. Seat is locked for 10 minutes and waiting for payment
@@ -309,9 +310,29 @@ paths:
                   data:
                     type: object
                     properties:
-                      ticketId:
-                        type: string
-                        format: uuid
+                      ticket:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                            format: uuid
+                          scheduleId:
+                            type: string
+                            format: uuid
+                          totalPassenger:
+                            type: number
+                          orderer:
+                            type: object
+                            properties:
+                              name:
+                                type: string
+                              email:
+                                type: string
+                              noWa:
+                                type: string
+                                example: 628xxxxx
+                          seatIdentifier:
+                            type: string
                       secondsBeforeInvalid:
                         type: integer
         '400':
