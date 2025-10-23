@@ -8,7 +8,7 @@ import {
   UsePipes,
 } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { fromEvent, map, Observable } from 'rxjs';
+import { defer, from, fromEvent, map, merge } from 'rxjs';
 import { ValidationPipe } from 'src/validation/validation.pipe';
 import {
   type GetLockedSeatsParamsDto,
@@ -17,11 +17,13 @@ import {
   type GetSchedulesParamsDto,
 } from './dto/params.dto.schedule';
 import { SchedulesService } from './schedules.service';
+import { TicketsService } from 'src/tickets/tickets.service';
 
 @Controller('schedules')
 export class SchedulesController {
   constructor(
     private readonly schedulesService: SchedulesService,
+    private readonly ticketsService: TicketsService,
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
@@ -36,17 +38,19 @@ export class SchedulesController {
 
   @Sse('/:scheduleId/locked-seats')
   @UsePipes(new ValidationPipe(getLockedSeatsParamsDto))
-  getLockedSeatsSSE(
-    @Param() params: GetLockedSeatsParamsDto,
-  ): Observable<MessageEvent> {
-    return fromEvent(
+  async getLockedSeatsSSE(@Param() params: GetLockedSeatsParamsDto) {
+    const initialLockedSeats = await this.ticketsService.getLockedSeats(
+      params.scheduleId,
+    );
+    const initialEvent$ = defer(() =>
+      from([{ data: { event: 'locked-seats', data: initialLockedSeats } }]),
+    );
+
+    const updatesEvent$ = fromEvent(
       this.eventEmitter,
       `locked-seats-update:${params.scheduleId}`,
-    ).pipe(
-      map(
-        (data: string[]) =>
-          ({ data, event: 'seats-update' }) as any as MessageEvent,
-      ),
-    );
+    ).pipe(map((data) => data as MessageEvent));
+
+    return merge(initialEvent$, updatesEvent$);
   }
 }

@@ -1,4 +1,6 @@
 export type SeatUpdatesMessageEvent = {
-  event: string;
-  data: string[];
+  data: {
+    event: string;
+    data: string[];
+  };
 };

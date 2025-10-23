@@ -37,6 +37,9 @@ export class DbService {
       );
     }
 
-    this.db = drizzle(databaseUrl, { schema, logger: true });
+    this.db = drizzle(databaseUrl, {
+      schema,
+      logger: configService.get('NODE_ENV') !== 'production',
+    });
   }
 }

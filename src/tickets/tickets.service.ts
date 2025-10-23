@@ -2,7 +2,6 @@ import {
   BadRequestException,
   HttpStatus,
   Injectable,
-  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
@@ -20,10 +19,8 @@ export class TicketsService {
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
-  private readonly logger = new Logger(TicketsService.name);
-
   // In seconds
-  private readonly SEAT_LOCKED_DURATION = 60 * 10;
+  private readonly SEAT_LOCKED_DURATION = 10;
 
   findById(id: string) {
     return this.dbService.db.query.ticket.findFirst({
@@ -32,11 +29,11 @@ export class TicketsService {
   }
 
   private getLockedSeatsKey(scheduleId: string, seatIdentifier: string) {
-    return `locked-seats-${scheduleId}:${seatIdentifier}`;
+    return `locked-seats_${scheduleId}:${seatIdentifier}`;
   }
 
   private getLockedSeatsPrefixKey(scheduleId: string) {
-    return `locked-seats-${scheduleId}:`;
+    return `locked-seats_${scheduleId}:`;
   }
 
   // Return seat identifiers
@@ -44,6 +41,29 @@ export class TicketsService {
     return await Promise.all(
       lockedSeatKeys.map(async (key) => (await this.redisService.db.get(key))!),
     );
+  }
+
+  async getLockedSeats(scheduleId: string) {
+    const [occupiedSeats, [, lockedSeatKeys]] = await Promise.all([
+      this.dbService.db.query.seat.findMany({
+        where: and(eq(schema.seat.scheduleId, scheduleId)),
+      }),
+
+      // Using SCAN instead of KEYS
+      // because SCAN is
+      this.redisService.db.scan(
+        // Start from 0
+        0,
+        'MATCH',
+        `${this.getLockedSeatsPrefixKey(scheduleId)}*`,
+        'COUNT',
+        // Why 15? Because every schedule has maximum 15 seats
+        15,
+      ),
+    ]);
+
+    const lockedSeats = await this.getLockedSeatValues(lockedSeatKeys);
+    return occupiedSeats.map((seat) => seat.seatIdentifier).concat(lockedSeats);
   }
 
   async create(data: CreateTicketDto) {
@@ -112,34 +132,15 @@ export class TicketsService {
       return newTicket;
     });
 
-    const [occupiedSeats, [, lockedSeatKeys]] = await Promise.all([
-      this.dbService.db.query.seat.findMany({
-        where: and(eq(schema.seat.scheduleId, data.scheduleId)),
-      }),
-
-      // Using SCAN instead of KEYS
-      // because SCAN is
-      this.redisService.db.scan(
-        // Start from 0
-        0,
-        'MATCH',
-        `${this.getLockedSeatsPrefixKey(data.scheduleId)}*`,
-        'COUNT',
-        // Why 15? Because every schedule has maximum 15 seats
-        15,
-      ),
-    ]);
-
-    const lockedSeats = await this.getLockedSeatValues(lockedSeatKeys);
-
     // Send seat updates event
     const seatsUpdateMessageEvent: SeatUpdatesMessageEvent = {
       // event type for the client
-      event: 'seats-update',
-      data: occupiedSeats
-        .map((seat) => seat.seatIdentifier)
-        .concat(lockedSeats),
+      data: {
+        event: 'seat-locked',
+        data: [data.seatIdentifier],
+      },
     };
+
     this.eventEmitter.emit(
       // event type for the server
       `locked-seats-update:${data.scheduleId}`,

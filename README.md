@@ -33,6 +33,12 @@ Create `.env` file and fill out all the neccesary variables from `.env.example`.
 >
 > Again, I'm not sponsored, but I love their product
 
+### Redis Setup
+Every locked seats in Redis has TTL expiration (which is 10 minutes). Since we're using SSE for realtime seats update, we need to inform the client the seats are unlocked (after the TTL expired). To do that, we need to set up our Redis to send events when a key is expired. Log in to your Redis using CLI and run this command:
+```cli
+CONFIG SET notify-keyspace-events Ex
+```
+
 ## Compile and run the project
 
 ```bash
