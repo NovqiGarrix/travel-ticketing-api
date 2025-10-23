@@ -147,7 +147,10 @@ paths:
                         time:
                           type: string
                           format: timestamp
-                        totalAvailableSeat:
+                        estimationTime:
+                          type: integer
+                          format: seconds
+                        totalLockedSeat:
                           type: integer
                         departure:
                           type: object
@@ -167,6 +170,7 @@ paths:
                               type: string
                         price:
                           type: integer
+                          format: IDR
         '400':
           description: One or more of the query parameter are invalid or missing. Check the response body for details
           headers:

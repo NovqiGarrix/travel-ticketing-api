@@ -1,5 +1,4 @@
-import { schema } from '../src/db/db.service';
-import { drizzle } from 'drizzle-orm/node-postgres';
+import { DbService, schema } from '../src/db/db.service';
 import { ConfigService } from '@nestjs/config';
 import { NewSchedule } from 'src/db/schema';
 import { sql } from 'drizzle-orm';
@@ -17,7 +16,7 @@ function getRandom(elementLength: number) {
 
 async function main() {
   const configService = new ConfigService();
-  const db = drizzle(configService.get('DATABASE_URL') as string, { schema });
+  const db = new DbService(configService).db;
 
   await db.transaction(async (tx) => {
     await tx.execute(sql`TRUNCATE schedules CASCADE`);

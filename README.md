@@ -47,6 +47,11 @@ $ pnpm run start:prod
 ```
 
 ## Run tests
+You need to create a new database for testing. After that run these migrations command:
+```bash
+$ NODE_ENV=testing npx drizzle-kit migrate
+$ NODE_ENV=testing bun run seed/index.ts
+```
 
 ```bash
 # unit tests

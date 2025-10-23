@@ -27,8 +27,16 @@ export class DbService {
   public db: NodePgDatabase<Schema>;
 
   constructor(private readonly configService: ConfigService) {
-    this.db = drizzle(this.configService.get('DATABASE_URL') as string, {
-      schema,
-    });
+    const isTesting = configService.get('NODE_ENV') === 'testing';
+    const databaseUrlKey = isTesting ? 'TEST_DATABASE_URL' : 'DATABASE_URL';
+
+    const databaseUrl = this.configService.get(databaseUrlKey) as string;
+    if (!databaseUrl) {
+      throw new Error(
+        `Value of '${databaseUrlKey}' does not exist in environment variables`,
+      );
+    }
+
+    this.db = drizzle(databaseUrl, { schema, logger: true });
   }
 }

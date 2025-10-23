@@ -6,6 +6,7 @@ import { ConfigModule } from '@nestjs/config';
 import { DeparturesModule } from './departures/departures.module';
 import { TicketsModule } from './tickets/tickets.module';
 import { RedisModule } from './redis/redis.module';
+import { SchedulesModule } from './schedules/schedules.module';
 import * as Joi from 'joi';
 
 @Module({
@@ -14,7 +15,7 @@ import * as Joi from 'joi';
       isGlobal: true,
       validationSchema: Joi.object({
         NODE_ENV: Joi.string()
-          .valid('development', 'production')
+          .valid('development', 'production', 'testing')
           .default('development'),
         PORT: Joi.number().port().default(5050),
         REDIS_URL: Joi.string().uri(),
@@ -25,6 +26,7 @@ import * as Joi from 'joi';
     DeparturesModule,
     TicketsModule,
     RedisModule,
+    SchedulesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
