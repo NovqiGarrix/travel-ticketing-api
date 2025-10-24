@@ -335,6 +335,17 @@ paths:
                             type: string
                       secondsBeforeInvalid:
                         type: integer
+                      checkout:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                          url:
+                            type: string
+                          status:
+                            type: string
+                            format: PENDING or PAID
+                            default: PENDING
         '400':
           description: One or more of the request body are invalid or missing
           headers:
@@ -363,58 +374,5 @@ paths:
                   message:
                     type: string
                     example: Schedule data is not found or has been expired
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
-  /tickets/{ticketId}/payments:
-    post:
-      tags:
-        - Tickets
-      description: Payment initiation
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                paymentMethodCode:
-                  type: string
-                  example: ID_OVO
-      responses:
-        '201':
-          description: Successfully initiate payment
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  invoiceId:
-                    type: string
-                    description: Invoice ID from payment gateway
-                  ticketId:
-                    type: string
-                    format: uuid
-                  paymentStatus:
-                    type: string
-                    default: PENDING
-                  invoiceUrl:
-                    type: string
-                    description: Redirect user to this URL to let her pay the bill
-        '400':
-          description: Invalid ticket ID or ticket ID not found
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/X-Rate-Limit-Limit'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/X-Rate-Limit-Remaining'
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/400ResponseBody'
         '500':
           $ref: '#/components/responses/InternalServerError'

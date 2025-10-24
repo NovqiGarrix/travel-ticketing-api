@@ -9,7 +9,10 @@ import { and, eq } from 'drizzle-orm';
 import { DbService, schema } from 'src/db/db.service';
 import { RedisService } from 'src/redis/redis.service';
 import { SeatUpdatesMessageEvent } from 'src/types';
-import { CreateTicketDto } from './dto/request.body.dto.ticket';
+import {
+  CreateTicketDto,
+  UpdateTicketDto,
+} from './dto/request.body.dto.ticket';
 
 @Injectable()
 export class TicketsService {
@@ -19,8 +22,10 @@ export class TicketsService {
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
-  // In seconds
-  private readonly SEAT_LOCKED_DURATION = 10;
+  // 30 minutes in seconds
+  // this expiration is the same as
+  // the payment session expiration
+  private readonly SEAT_LOCKED_DURATION = 30 * 10;
 
   findById(id: string) {
     return this.dbService.db.query.ticket.findFirst({
@@ -28,7 +33,7 @@ export class TicketsService {
     });
   }
 
-  private getLockedSeatsKey(scheduleId: string, seatIdentifier: string) {
+  public static getLockedSeatsKey(scheduleId: string, seatIdentifier: string) {
     return `locked-seats_${scheduleId}:${seatIdentifier}`;
   }
 
@@ -72,6 +77,11 @@ export class TicketsService {
       where: eq(schema.schedule.id, data.scheduleId),
       columns: {
         id: true,
+        price: true,
+      },
+      with: {
+        departure: true,
+        destination: true,
       },
     });
 
@@ -105,7 +115,7 @@ export class TicketsService {
     // check if it locked
     const isSeatLocked = Boolean(
       await this.redisService.db.exists(
-        this.getLockedSeatsKey(data.scheduleId, data.seatIdentifier),
+        TicketsService.getLockedSeatsKey(data.scheduleId, data.seatIdentifier),
       ),
     );
 
@@ -123,7 +133,10 @@ export class TicketsService {
 
         // Lock seat in Redis
         this.redisService.db.setex(
-          this.getLockedSeatsKey(data.scheduleId, data.seatIdentifier),
+          TicketsService.getLockedSeatsKey(
+            data.scheduleId,
+            data.seatIdentifier,
+          ),
           this.SEAT_LOCKED_DURATION,
           data.seatIdentifier,
         ),
@@ -151,5 +164,13 @@ export class TicketsService {
       ticket: newTicket,
       secondsBeforeInvalid: this.SEAT_LOCKED_DURATION,
     };
+  }
+
+  updateTicket(id: string, data: UpdateTicketDto) {
+    return this.dbService.db
+      .update(schema.ticket)
+      .set(data)
+      .where(eq(schema.ticket.id, id))
+      .returning();
   }
 }

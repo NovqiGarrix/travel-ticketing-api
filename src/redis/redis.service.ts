@@ -7,6 +7,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import Redis from 'ioredis';
+import { Env } from 'src/env';
 import { SeatUpdatesMessageEvent } from 'src/types';
 
 @Injectable()
@@ -15,10 +16,10 @@ export class RedisService implements OnModuleDestroy, OnModuleInit {
   private readonly logger = new Logger(RedisService.name);
 
   constructor(
-    private readonly configService: ConfigService,
+    private readonly configService: ConfigService<Env, true>,
     private readonly eventEmitter: EventEmitter2,
   ) {
-    const redis = new Redis(this.configService.get('REDIS_URL') as string);
+    const redis = new Redis(this.configService.get('REDIS_URL'));
 
     redis.on('connect', () => {
       this.logger.log(`Connected to Redis`);
@@ -40,9 +41,7 @@ export class RedisService implements OnModuleDestroy, OnModuleInit {
     // the client connection goes into subcriber mode
     // and it can only call GET and SET methods
     // -- That's why we need a new Redis client
-    const subscriberClient = new Redis(
-      this.configService.get('REDIS_URL') as string,
-    );
+    const subscriberClient = new Redis(this.configService.get('REDIS_URL'));
 
     await subscriberClient.subscribe('__keyevent@0__:expired');
     this.logger.log('Subsribed to expiration events');

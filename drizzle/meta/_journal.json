@@ -29,6 +29,13 @@
       "when": 1761209778323,
       "tag": "0003_add_not_null_in_seat_identifier_in_ticket",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1761285705030,
+      "tag": "0004_update_payment_table",
+      "breakpoints": true
     }
   ]
 }

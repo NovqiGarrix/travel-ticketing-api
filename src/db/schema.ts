@@ -1,14 +1,14 @@
 import {
+  boolean,
+  index,
+  integer,
+  json,
+  pgTable,
+  serial,
+  text,
+  timestamp,
   uuid,
   varchar,
-  pgTable,
-  boolean,
-  integer,
-  timestamp,
-  serial,
-  json,
-  text,
-  index,
 } from 'drizzle-orm/pg-core';
 import { v7 as v7uuid } from 'uuid';
 
@@ -23,6 +23,22 @@ export const seat = pgTable('seats', {
 });
 
 export type Seat = typeof seat.$inferSelect;
+
+export const departure = pgTable('departures', {
+  id: uuid()
+    .$default(() => v7uuid())
+    .primaryKey(),
+  label: varchar({ length: 256 }).notNull(),
+  tag: varchar({ length: 128 }).notNull(),
+});
+
+export const destination = pgTable('destinations', {
+  id: uuid()
+    .$default(() => v7uuid())
+    .primaryKey(),
+  label: varchar({ length: 256 }).notNull(),
+  tag: varchar({ length: 128 }).notNull(),
+});
 
 export const schedule = pgTable('schedules', {
   id: uuid()
@@ -41,24 +57,8 @@ export const schedule = pgTable('schedules', {
   estimationTime: integer('estimation_time').notNull(),
 });
 
-export type Schedule = typeof schedule.$inferInsert;
+export type Schedule = typeof schedule.$inferSelect;
 export type NewSchedule = typeof schedule.$inferInsert;
-
-export const departure = pgTable('departures', {
-  id: uuid()
-    .$default(() => v7uuid())
-    .primaryKey(),
-  label: varchar({ length: 256 }).notNull(),
-  tag: varchar({ length: 128 }).notNull(),
-});
-
-export const destination = pgTable('destinations', {
-  id: uuid()
-    .$default(() => v7uuid())
-    .primaryKey(),
-  label: varchar({ length: 256 }).notNull(),
-  tag: varchar({ length: 128 }).notNull(),
-});
 
 export const ticket = pgTable('tickets', {
   id: uuid()
@@ -83,17 +83,15 @@ export const payment = pgTable(
     ticketId: uuid('ticket_id')
       .notNull()
       .references(() => ticket.id, { onDelete: 'cascade' }),
-    invoiceId: varchar('invoice_id', { length: 256 }).notNull(), // Xendit invoice ID,
-    paymentMethodCode: varchar('payment_method_code', {
-      length: 128,
-    }).notNull(), // Payment method code from Xendit,
+    paymentSessionId: varchar('payment_session_id', { length: 256 }).notNull(), // Xendit payment session ID,
     paymentStatus: varchar('payment_status', {
       length: 12,
-      enum: ['PENDING', 'PAID'],
+      enum: ['PENDING', 'PAID', 'EXPIRED', 'ERROR'],
     })
       .notNull()
       .default('PENDING'),
-    invoiceUrl: text('invoice_url').notNull(),
+    amount: integer().notNull(),
+    error: text(),
   },
-  (table) => [index('invoice_id_index').on(table.invoiceId)],
+  (table) => [index('payment_session_id_index').on(table.paymentSessionId)],
 );

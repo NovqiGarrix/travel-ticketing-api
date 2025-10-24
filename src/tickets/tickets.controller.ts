@@ -5,19 +5,23 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  ParseUUIDPipe,
+  Patch,
   Post,
   UseGuards,
   UseInterceptors,
   UsePipes,
 } from '@nestjs/common';
-import { TicketsService } from './tickets.service';
 import { RateLimitGuard } from 'src/rate-limit/rate-limit.guard';
 import { RateLimitInterceptor } from 'src/rate-limit/rate-limit.interceptor';
+import { ValidationPipe } from 'src/validation/validation.pipe';
 import {
   type CreateTicketDto,
   createTicketDto,
+  type UpdateTicketDto,
+  updateTicketDto,
 } from './dto/request.body.dto.ticket';
-import { ValidationPipe } from 'src/validation/validation.pipe';
+import { TicketsService } from './tickets.service';
 
 @UseGuards(RateLimitGuard)
 @UseInterceptors(RateLimitInterceptor)
@@ -49,6 +53,17 @@ export class TicketsController {
     return {
       statusCode: HttpStatus.CREATED,
       data: await this.ticketService.create(data),
+    };
+  }
+
+  @Patch(':id')
+  async updateTicket(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body(new ValidationPipe(updateTicketDto)) data: UpdateTicketDto,
+  ) {
+    return {
+      statusCode: HttpStatus.OK,
+      data: await this.ticketService.updateTicket(id, data),
     };
   }
 }
