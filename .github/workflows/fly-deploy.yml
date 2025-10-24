@@ -17,7 +17,10 @@ jobs:
         with:
           node-version: 25
       - name: Push database changes
-        run: npx drizzle-kit push
+        run: |
+          npm i -g pnpm
+          pnpm install --dev
+          npx drizzle-kit push
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
       - uses: superfly/flyctl-actions/setup-flyctl@master
