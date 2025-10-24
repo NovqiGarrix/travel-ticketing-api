@@ -1,10 +1,8 @@
 import { defineConfig } from 'drizzle-kit';
-import { ConfigService } from '@nestjs/config';
 
-const configService = new ConfigService();
-const isTesting = configService.get('NODE_ENV') === 'testing';
+const isTesting = process.env.NODE_ENV === 'testing';
 const databaseUrlKey = isTesting ? 'TEST_DATABASE_URL' : 'DATABASE_URL';
-const url = configService.get(databaseUrlKey) as string;
+const url = process.env[databaseUrlKey] as string;
 
 if (!url) {
   console.error(
