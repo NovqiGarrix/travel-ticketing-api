@@ -20,6 +20,3 @@ processes = ['app']
 memory = '1gb'
 cpu_kind = 'shared'
 cpus = 1
-
-[deploy]
-release_command = "sh -c 'NODE_PATH=/app/node_modules pnpm dlx drizzle-kit@latest push'"
