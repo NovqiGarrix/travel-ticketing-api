@@ -11,7 +11,7 @@ export const xenditPaymentSessionWebhook = z.object({
   event: z.enum(['payment_session.completed', 'payment_session.expired']),
   data: z.object({
     // payment_session_id
-    id: z.string(),
+    payment_session_id: z.string(),
     // this is the ticketId
     reference_id: z.string(),
   }),

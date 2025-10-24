@@ -139,7 +139,7 @@ export class PaymentsService {
   async handleXenditPaymentWebhook(data: XenditPaymentSessionWebhook) {
     if (data.event === 'payment_session.expired') {
       this.logger.error(
-        `Webhook - payment_session_id: ${data.data.id} --> Payment session expired!`,
+        `Webhook - payment_session_id: ${data.data.payment_session_id} --> Payment session expired!`,
       );
 
       await this.dbService.db
@@ -148,7 +148,9 @@ export class PaymentsService {
           paymentStatus: 'EXPIRED',
           error: 'Your payment is expired. You can create a new one',
         })
-        .where(eq(schema.payment.paymentSessionId, data.data.id));
+        .where(
+          eq(schema.payment.paymentSessionId, data.data.payment_session_id),
+        );
 
       // if it expired
       // the locked seat will be unlocked
@@ -186,7 +188,9 @@ export class PaymentsService {
           paymentStatus: 'ERROR',
           error: 'Ticket not found',
         })
-        .where(eq(schema.payment.paymentSessionId, data.data.id));
+        .where(
+          eq(schema.payment.paymentSessionId, data.data.payment_session_id),
+        );
       return;
     }
 
@@ -199,7 +203,9 @@ export class PaymentsService {
         .set({
           paymentStatus: 'PAID',
         })
-        .where(eq(schema.payment.paymentSessionId, data.data.id));
+        .where(
+          eq(schema.payment.paymentSessionId, data.data.payment_session_id),
+        );
 
       // add new occupied seat in the database
       await tx.insert(schema.seat).values([
@@ -219,7 +225,7 @@ export class PaymentsService {
     });
 
     this.logger.log(
-      `Payment succeeded --> payment_session_id: ${data.data.id} and ticket_id: ${data.data.reference_id}`,
+      `Payment succeeded --> payment_session_id: ${data.data.payment_session_id} and ticket_id: ${data.data.reference_id}`,
     );
   }
 }
