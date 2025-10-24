@@ -22,4 +22,4 @@ cpu_kind = 'shared'
 cpus = 1
 
 [deploy]
-release_command = "npx drizzle-kit push"
+release_command = "pnpm dlx drizzle-kit@latest push"

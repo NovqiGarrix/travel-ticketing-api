@@ -13,6 +13,7 @@ RUN pnpm run build
 RUN pnpm prune --prod
 
 FROM $BASE AS production
+RUN npm i -g pnpm
 USER node
 ENV NODE_ENV=production
 WORKDIR /app
