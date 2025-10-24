@@ -18,9 +18,7 @@ jobs:
           node-version: 25
       - name: Push database changes
         run: |
-          npm i -g pnpm
-          pnpm install --dev
-          pnpm add drizzle-orm --no-save
+          npm i -g drizzle-kit drizzle-orm
           npx drizzle-kit push
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
