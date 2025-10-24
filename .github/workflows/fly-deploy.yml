@@ -12,16 +12,6 @@ jobs:
     concurrency: deploy-group # optional: ensure only one action runs at a time
     steps:
       - uses: actions/checkout@v5
-      - name: Set up Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: 25
-      - name: Push database changes
-        run: |
-          npm i -g drizzle-kit drizzle-orm
-          npx drizzle-kit push
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
       - uses: superfly/flyctl-actions/setup-flyctl@master
       - run: flyctl deploy --remote-only
         env:
