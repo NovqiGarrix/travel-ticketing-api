@@ -16,14 +16,8 @@ export class SchedulesService {
       .select({
         ...scheduleColumns,
         totalLockedSeat: count(schema.seat),
-        departure: {
-          id: schema.departure.id,
-          departure: schema.departure.label,
-        },
-        destination: {
-          id: schema.destination.id,
-          destinaation: schema.destination.label,
-        },
+        departure: getTableColumns(schema.departure),
+        destination: getTableColumns(schema.destination),
       })
       .from(schema.schedule)
       .fullJoin(

@@ -10,6 +10,7 @@ import { SchedulesModule } from './schedules/schedules.module';
 import { TicketsModule } from './tickets/tickets.module';
 import { envSchema } from './env';
 import { PaymentsModule } from './payments/payments.module';
+import { DestinationsModule } from './destinations/destinations.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { PaymentsModule } from './payments/payments.module';
     RedisModule,
     SchedulesModule,
     PaymentsModule,
+    DestinationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

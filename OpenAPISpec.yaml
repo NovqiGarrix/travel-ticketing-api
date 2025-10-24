@@ -135,6 +135,7 @@ components:
         seatIdentifier:
           type: string
           pattern: 'A([1-9]|1[0-5])'
+
     Ticket:
       type: object
       properties:
@@ -158,7 +159,61 @@ components:
         seatIdentifier:
           type: string
 
+    DepartureOrDestination:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        tag:
+          type: string
+          description: The City
+          example: BANDUNG
+        label:
+          type: string
+          example: BUAH BATU
+
 paths:
+  /departures:
+    get:
+      description: Get all available departures
+      tags:
+        - Departures
+      responses:
+        '200':
+          description: Success to receive all departures
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/X-Rate-Limit-Limit'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/X-Rate-Limit-Remaining'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DepartureOrDestination'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /destinations:
+    get:
+      description: Get all available destinations
+      tags:
+        - Destinations
+      responses:
+        '200':
+          description: Success to receive all destinations
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/X-Rate-Limit-Limit'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/X-Rate-Limit-Remaining'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DepartureOrDestination'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /schedules:
     get:
       description: Check travel schedules for specific departure, destination, date, and amount of passenger
@@ -221,21 +276,9 @@ paths:
                         totalLockedSeat:
                           type: integer
                         departure:
-                          type: object
-                          properties:
-                            id:
-                              type: string
-                              format: uuid
-                            departure:
-                              type: string
+                          $ref: '#/components/schemas/DepartureOrDestination'
                         destination:
-                          type: object
-                          properties:
-                            id:
-                              type: string
-                              format: uuid
-                            destination:
-                              type: string
+                          $ref: '#/components/schemas/DepartureOrDestination'
                         price:
                           type: integer
                           format: IDR
