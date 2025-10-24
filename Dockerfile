@@ -16,6 +16,7 @@ FROM $BASE AS production
 USER node
 ENV NODE_ENV=production
 WORKDIR /app
+COPY drizzle.config.ts .
 COPY --chown=node:node --from=build /app/dist ./dist
 COPY --chown=node:node --from=build /app/node_modules ./node_modules
 CMD ["node", "dist/src/main.js"]
