@@ -13,11 +13,14 @@ RUN pnpm run build
 RUN pnpm prune --prod
 
 FROM $BASE AS production
-RUN npm i -g pnpm
 USER node
 ENV NODE_ENV=production
 WORKDIR /app
+# -- Required to run update db changes
+RUN npm i -g pnpm
 COPY drizzle.config.ts .
+COPY src/db/schema.ts ./src/db/schema.ts
+# --
 COPY --chown=node:node --from=build /app/dist ./dist
 COPY --chown=node:node --from=build /app/node_modules ./node_modules
 CMD ["node", "dist/src/main.js"]
