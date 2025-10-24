@@ -1,1 +1,0 @@
-ALTER TABLE "tickets" ALTER COLUMN "seat_identifier" SET NOT NULL;

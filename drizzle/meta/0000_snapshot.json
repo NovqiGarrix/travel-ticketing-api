@@ -1,5 +1,5 @@
 {
-  "id": "f38bb11d-b000-41d3-a22d-392a62c7e6bd",
+  "id": "d7560d7d-3339-462d-8764-c012bc2ffd83",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -82,15 +82,9 @@
           "primaryKey": false,
           "notNull": true
         },
-        "invoice_id": {
-          "name": "invoice_id",
+        "payment_session_id": {
+          "name": "payment_session_id",
           "type": "varchar(256)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "payment_method_code": {
-          "name": "payment_method_code",
-          "type": "varchar(128)",
           "primaryKey": false,
           "notNull": true
         },
@@ -101,19 +95,25 @@
           "notNull": true,
           "default": "'PENDING'"
         },
-        "invoice_url": {
-          "name": "invoice_url",
-          "type": "text",
+        "amount": {
+          "name": "amount",
+          "type": "integer",
           "primaryKey": false,
           "notNull": true
+        },
+        "error": {
+          "name": "error",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
         }
       },
       "indexes": {
-        "invoice_id_index": {
-          "name": "invoice_id_index",
+        "payment_session_id_index": {
+          "name": "payment_session_id_index",
           "columns": [
             {
-              "expression": "invoice_id",
+              "expression": "payment_session_id",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -136,7 +136,7 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },
@@ -195,7 +195,34 @@
         }
       },
       "indexes": {},
-      "foreignKeys": {},
+      "foreignKeys": {
+        "schedules_departure_id_departures_id_fk": {
+          "name": "schedules_departure_id_departures_id_fk",
+          "tableFrom": "schedules",
+          "tableTo": "departures",
+          "columnsFrom": [
+            "departure_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "schedules_destination_id_destinations_id_fk": {
+          "name": "schedules_destination_id_destinations_id_fk",
+          "tableFrom": "schedules",
+          "tableTo": "destinations",
+          "columnsFrom": [
+            "destination_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
@@ -223,13 +250,6 @@
           "type": "uuid",
           "primaryKey": false,
           "notNull": true
-        },
-        "is_locked": {
-          "name": "is_locked",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
         }
       },
       "indexes": {},
@@ -244,7 +264,7 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },
@@ -282,9 +302,9 @@
           "primaryKey": false,
           "notNull": true
         },
-        "seatId": {
-          "name": "seatId",
-          "type": "integer",
+        "seat_identifier": {
+          "name": "seat_identifier",
+          "type": "varchar(2)",
           "primaryKey": false,
           "notNull": true
         }
@@ -301,20 +321,7 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        },
-        "tickets_seatId_seats_id_fk": {
-          "name": "tickets_seatId_seats_id_fk",
-          "tableFrom": "tickets",
-          "tableTo": "seats",
-          "columnsFrom": [
-            "seatId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },

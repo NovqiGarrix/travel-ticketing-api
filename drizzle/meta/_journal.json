@@ -5,36 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1760978031923,
+      "when": 1761309031573,
       "tag": "0000_first",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1761202460108,
-      "tag": "0001_remove_is_locked_column_from_seats",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1761209583891,
-      "tag": "0002_seat_id_to_seat_identifier_in_tickets",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1761209778323,
-      "tag": "0003_add_not_null_in_seat_identifier_in_ticket",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1761285705030,
-      "tag": "0004_update_payment_table",
       "breakpoints": true
     }
   ]
