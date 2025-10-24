@@ -180,7 +180,7 @@ export class PaymentsService {
 
     if (!ticket) {
       this.logger.error(
-        `Webhook - payment_session_id: ${data.data.id} --> Ticket not found: ${data.data.reference_id}`,
+        `Webhook - payment_session_id: ${data.data.payment_session_id} --> Ticket not found: ${data.data.reference_id}`,
       );
       await this.dbService.db
         .update(schema.payment)
