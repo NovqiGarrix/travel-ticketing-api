@@ -90,6 +90,74 @@ components:
             type: string
           example: ['C1']
 
+    XenditPaymentSessionWebhook:
+      type: object
+      required:
+        - event
+        - data
+      properties:
+        event:
+          type: string
+          enum:
+            - payment_session.completed
+            - payment_session.expired
+        data:
+          type: object
+          required:
+            - id
+            - reference_id
+          properties:
+            id:
+              type: string
+            reference_id:
+              type: string
+
+    UpdateTicketRequest:
+      type: object
+      properties:
+        scheduleId:
+          type: string
+          format: uuid
+        totalPassenger:
+          type: integer
+          minimum: 1
+          maximum: 15
+        orderer:
+          type: object
+          properties:
+            name:
+              type: string
+            email:
+              type: string
+            noWa:
+              type: string
+              pattern: '\+?([ -]?\d+)+|\(\d+\)([ -]\d+)'
+        seatIdentifier:
+          type: string
+          pattern: 'A([1-9]|1[0-5])'
+    Ticket:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        scheduleId:
+          type: string
+          format: uuid
+        totalPassenger:
+          type: number
+        orderer:
+          type: object
+          properties:
+            name:
+              type: string
+            email:
+              type: string
+            noWa:
+              type: string
+        seatIdentifier:
+          type: string
+
 paths:
   /schedules:
     get:
@@ -374,5 +442,89 @@ paths:
                   message:
                     type: string
                     example: Schedule data is not found or has been expired
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /tickets/{id}:
+    patch:
+      tags:
+        - Tickets
+      description: Update ticket details.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTicketRequest'
+      responses:
+        '200':
+          description: Successfully updated ticket.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    example: 200
+                  data:
+                    $ref: '#/components/schemas/Ticket'
+        '400':
+          description: One or more request body fields are invalid or missing.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/400ResponseBody'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /payments/webhook:
+    post:
+      tags:
+        - Payments
+      description: Handle webhook callbacks from Xendit.
+      parameters:
+        - in: header
+          name: X-CALLBACK-TOKEN
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/XenditPaymentSessionWebhook'
+      responses:
+        '200':
+          description: Webhook processed successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    default: 200
+        '403':
+          description: Invalid webhook token.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    example: 403
+                  error:
+                    type: string
+                    example: Invalid Webhook
         '500':
           $ref: '#/components/responses/InternalServerError'

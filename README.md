@@ -4,6 +4,10 @@ A Travel Agency ticketing system API. Realtime seats update using SSE, locking s
 
 ## Project setup
 
+### Xendit
+We use Xendit as our payment gateway, that so, you need to create an account, a test one. You do not need to verify your documents, but you have to choose the type of business you're in in the registration process. Just choose whatever business you might involve in the future.
+After that create your API key here: [https://dashboard.xendit.co/settings/developers#api-keys](https://dashboard.xendit.co/settings/developers#api-keys). Choose write permission for the first permission. Setup 2FA, and copy your secret key into the `.env` file [See Environment Variables step](https://github.com/NovqiGarrix/travel-ticketing-api?tab=readme-ov-file#environment-variables). You also need the [Webhook Token Verification](https://dashboard.xendit.co/settings/developers#webhooks). Copy it and put in `.env` file.
+
 ### Install Dependencies
 ```bash
 $ pnpm install
