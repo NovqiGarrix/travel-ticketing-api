@@ -20,6 +20,7 @@ jobs:
         run: |
           npm i -g pnpm
           pnpm install --dev
+          pnpm add drizzle-orm --no-save
           npx drizzle-kit push
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
