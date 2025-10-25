@@ -4,7 +4,7 @@ A Travel Agency ticketing system API. Realtime seats update using SSE, locking s
 
 ## Usage Flow
 
-How you might use the API:
+How you might use the API: <br>
 <img src="usage-flow.png" alt="Travel Ticketing API Usage Flow" width="600"/>
 
 ## Project setup
