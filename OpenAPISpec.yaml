@@ -8,7 +8,7 @@ info:
   version: 'v1.0'
 
 servers:
-  - url: https://travel-ticketing.fly.dev
+  - url: https://travel-ticketing-api.fly.dev
     description: Production server deploy in fly.io using Docker
 
 components:
@@ -111,6 +111,118 @@ components:
               type: string
             reference_id:
               type: string
+
+    CreatePaymentSessionRequest:
+      type: object
+      required:
+        - ticketId
+      properties:
+        ticketId:
+          type: string
+          format: uuid
+    XenditCreateSessionItem:
+      type: object
+      properties:
+        reference_id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        type:
+          type: string
+          enum: [DIGITAL_PRODUCT, PHYSICAL_PRODUCT, DIGITAL_SERVICE, PHYSICAL_SERVICE, FEE]
+        category:
+          type: string
+        net_unit_amount:
+          type: number
+        quantity:
+          type: integer
+          minimum: 1
+        currency:
+          type: string
+    XenditCreateSessionResponse:
+      type: object
+      properties:
+        payment_session_id:
+          type: string
+        created:
+          type: string
+          format: date-time
+        updated:
+          type: string
+          format: date-time
+        reference_id:
+          type: string
+        customer_id:
+          type: string
+        session_type:
+          type: string
+          enum: [SAVE, PAY]
+        allow_save_payment_method:
+          type: string
+          enum: [DISABLED, OPTIONAL, FORCED]
+          nullable: true
+        currency:
+          type: string
+          enum: [IDR, PHP, VND, THB, SGD, MYR, USD]
+        amount:
+          type: number
+          minimum: 0
+        country:
+          type: string
+          enum: [ID, PH, VN, TH, SG, MY]
+        mode:
+          type: string
+          enum: [PAYMENT_LINK, CARDS_SESSION_JS]
+        capture_method:
+          type: string
+          enum: [AUTOMATIC, MANUAL]
+          nullable: true
+        channel_properties:
+          type: object
+          additionalProperties: true
+          nullable: true
+        allowed_payment_channels:
+          type: array
+          items:
+            type: string
+        expires_at:
+          type: string
+          format: date-time
+        locale:
+          type: string
+        description:
+          type: string
+        success_return_url:
+          type: string
+          format: uri
+        cancel_return_url:
+          type: string
+          format: uri
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/XenditCreateSessionItem'
+          nullable: true
+        status:
+          type: string
+          enum: [ACTIVE, COMPLETED, EXPIRED, CANCELED]
+        payment_link_url:
+          type: string
+          format: uri
+          nullable: true
+        payment_token_id:
+          type: string
+          nullable: true
+        payment_id:
+          type: string
+          nullable: true
+        payment_request_id:
+          type: string
+          nullable: true
+        business_id:
+          type: string
 
     UpdateTicketRequest:
       type: object
@@ -340,30 +452,26 @@ paths:
                   The event stream is a flow of data blocks. Each block has an `event` type
                   and a `data` payload (which is a JSON string).
 
-                  **Event: `snapshot`**
+                  **Event: `locked-seats`**
                   Fires *once* upon initial connection.
-                  Provides the complete current state of all seats for the schedule.
-                  The `data` payload is a JSON object matching the `SeatSnapshot` schema.
+                  Provides the locked seats for the schedule.
+                  The `data` payload is a JSON string of an array
 
-                  **Event: `seat_update`**
-                  Fires whenever a single seat's status changes (e.g., locked, taken, released).
-                  The `data` payload is a JSON object matching the `SeatStatusUpdate` schema.
+                  **Event: `seat-locked`**
+                  Fires whenever a single seat is locked. The `data` payload is a JSON string of an array
 
-                  **Event: `heartbeat`**
-                  Fires periodically (e.g., every 30 seconds) with no data, just to keep the connection alive.
+                  **Event: `seat-unlocked`**
+                  Fires whenever a single seat is unlocked. The `data` payload is a JSON string of an array
 
                 example: |
-                  event: snapshot
-                  data: {"scheduleId":"UUID","available":["A1","A2","B3"],"locked":["C1"]}
+                  event: locked-seats
+                  data: ["A1", "A2", "A3"]
 
-                  event: seat_update
-                  data: {"seatId":"A2","newStatus":"locked"}
+                  event: seat-locked
+                  data: ["A1"]
 
-                  event: heartbeat
-                  data:
-
-                  event: seat_update
-                  data: {"seatId":"C1","newStatus":"available"}
+                  event: seat-unlocked
+                  data: ["A1"]
         '400':
           description: Missing or invalid scheduleId
           content:
@@ -528,6 +636,45 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /payments:
+    post:
+      tags:
+        - Payments
+      description: Initiate a payment session for a ticket.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePaymentSessionRequest'
+      responses:
+        '201':
+          description: Payment session created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XenditCreateSessionResponse'
+        '400':
+          description: Invalid request payload.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/400ResponseBody'
+        '404':
+          description: Ticket not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    example: 404
+                  error:
+                    type: string
+                    example: 'Ticket with: <ticket_id> does not exist'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
   /payments/webhook:
     post:
       tags:
